@@ -13,5 +13,5 @@ cat 1/input.txt | go run 1/main.go
 Install [golangci-lint](https://golangci-lint.run/usage/install/):
 
 ```shell
-golangci-lint run **/*.go
+golangci-lint run 1/*.go
 ```
