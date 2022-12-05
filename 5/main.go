@@ -69,7 +69,7 @@ func InitInstructions(lines []string) [][]string {
 	return instructions
 }
 
-func PerformInstructions(stacks [][]string, instructions [][]string) [][]string {
+func PerformInstructions9000(stacks [][]string, instructions [][]string) [][]string {
 	for _, instruction := range instructions {
 		n, _ := strconv.Atoi(instruction[0])
 		from, _ := strconv.Atoi(instruction[1])
@@ -85,6 +85,20 @@ func PerformInstructions(stacks [][]string, instructions [][]string) [][]string 
 	return stacks
 }
 
+func PerformInstructions9001(stacks [][]string, instructions [][]string) [][]string {
+	for _, instruction := range instructions {
+		n, _ := strconv.Atoi(instruction[0])
+		from, _ := strconv.Atoi(instruction[1])
+		to, _ := strconv.Atoi(instruction[2])
+
+		toMove := stacks[from-1][len(stacks[from-1])-n:]
+		stacks[to-1] = append(stacks[to-1], toMove...)
+		stacks[from-1] = stacks[from-1][:len(stacks[from-1])-n]
+	}
+
+	return stacks
+}
+
 func GetTopOfStacks(stacks [][]string) string {
 	top := ""
 	for _, s := range stacks {
@@ -95,10 +109,15 @@ func GetTopOfStacks(stacks [][]string) string {
 
 func main() {
 	stackLines, instructionLines := ReadLines()
-	stacks := InitStacks(stackLines)
 	instructions := InitInstructions(instructionLines)
-	stacks = PerformInstructions(stacks, instructions)
 
 	// Part 1
-	fmt.Println(GetTopOfStacks(stacks))
+	stacks9000 := InitStacks(stackLines)
+	stacks9000 = PerformInstructions9000(stacks9000, instructions)
+	fmt.Println(GetTopOfStacks(stacks9000))
+
+	// Part 2
+	stacks9001 := InitStacks(stackLines)
+	stacks9001 = PerformInstructions9001(stacks9001, instructions)
+	fmt.Println(GetTopOfStacks(stacks9001))
 }
