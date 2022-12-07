@@ -3,10 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 )
+
+const AvailableSpace = 70000000
 
 type Node struct {
 	id       string
@@ -94,6 +97,25 @@ func SumDirSizes(dirs []Node) (size int) {
 	return size
 }
 
+func FindDirToDelete(dirs []Node, unused int, need int) (Node, bool) {
+	smallest := Node{
+		size: math.MaxInt,
+	}
+
+	if unused >= need {
+		return smallest, false
+	}
+
+	for _, dir := range dirs {
+		if unused+dir.size >= need {
+			if dir.size < smallest.size {
+				smallest = dir
+			}
+		}
+	}
+	return smallest, false
+}
+
 func main() {
 	lines := ReadLines()
 	root := CreateDirectoryHierarchy(lines)
@@ -101,4 +123,10 @@ func main() {
 	// Part 1
 	dirs := FindLargeDirectories(root, 100000)
 	fmt.Println(SumDirSizes(dirs))
+
+	// Part 2
+	dirs = FindLargeDirectories(root, math.MaxInt)
+	unusedSpace := AvailableSpace - root.size
+	smallest, _ := FindDirToDelete(dirs, unusedSpace, 30000000)
+	fmt.Println(smallest.size)
 }
