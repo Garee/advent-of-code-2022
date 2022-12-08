@@ -69,14 +69,16 @@ func CountVisible(trees [][]Tree) (count int) {
 }
 
 func CountVisibleFacingDown(trees [][]Tree) (count int) {
-	for i := 1; i < len(trees); i++ {
-		for j := 1; j < len(trees[i]); j++ {
-			if trees[i][j].height > trees[i-1][j-1].height && !trees[i][j].visible {
-				fmt.Println(trees[i][j])
-				trees[i][j].visible = true
-				count++
-			} else {
-				return count
+	for col := 0; col < len(trees); col++ {
+		max := trees[0][col].height
+		for row := 0; row < len(trees[col]); row++ {
+			if trees[row][col].height > max {
+				max = trees[row][col].height
+
+				if !trees[row][col].visible {
+					trees[row][col].visible = true
+					count++
+				}
 			}
 		}
 	}
@@ -84,14 +86,17 @@ func CountVisibleFacingDown(trees [][]Tree) (count int) {
 }
 
 func CountVisibleFacingUp(trees [][]Tree) (count int) {
-	for i := len(trees) - 2; i > 0; i-- {
-		for j := len(trees[0]) - 2; j > 0; j-- {
-			if trees[i][j].height > trees[i+1][j+1].height && !trees[i][j].visible {
-				fmt.Println(trees[i][j])
-				trees[i][j].visible = true
-				count++
-			} else {
-				return count
+	for col := 0; col < len(trees); col++ {
+		max := trees[len(trees)-1][col].height
+
+		for row := len(trees[col]) - 1; row >= 0; row-- {
+			if trees[row][col].height > max {
+				max = trees[row][col].height
+
+				if !trees[row][col].visible {
+					trees[row][col].visible = true
+					count++
+				}
 			}
 		}
 	}
@@ -99,26 +104,30 @@ func CountVisibleFacingUp(trees [][]Tree) (count int) {
 }
 
 func CountVisibleFacingRight(trees []Tree) (count int) {
-	for i := 1; i < len(trees); i++ {
-		if trees[i].height > trees[i-1].height && !trees[i].visible {
-			fmt.Println(trees[i], "right")
-			trees[i].visible = true
-			count++
-		} else {
-			return count
+	max := trees[0].height
+	for i := 0; i < len(trees); i++ {
+		if trees[i].height > max {
+			max = trees[i].height
+
+			if !trees[i].visible {
+				trees[i].visible = true
+				count++
+			}
 		}
 	}
 	return count
 }
 
 func CountVisibleFacingLeft(trees []Tree) (count int) {
-	for i := len(trees) - 2; i > 0; i-- {
-		if trees[i].height > trees[i+1].height && !trees[i].visible {
-			fmt.Println(trees[i], "left")
-			trees[i].visible = true
-			count++
-		} else {
-			return count
+	max := trees[len(trees)-1].height
+	for i := len(trees) - 1; i >= 0; i-- {
+		if trees[i].height > max {
+			max = trees[i].height
+
+			if !trees[i].visible {
+				trees[i].visible = true
+				count++
+			}
 		}
 	}
 	return count
