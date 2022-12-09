@@ -8,10 +8,11 @@ import (
 )
 
 type Tree struct {
-	row     int
-	col     int
-	height  int
-	visible bool
+	row         int
+	col         int
+	height      int
+	visible     bool
+	scenicScore int
 }
 
 func ReadLines() []string {
@@ -33,10 +34,11 @@ func ReadForestMatrix(lines []string) [][]Tree {
 		for col, c := range line {
 			height, _ := strconv.Atoi(string(c))
 			tree := Tree{
-				row:     r,
-				col:     col,
-				height:  height,
-				visible: false,
+				row:         r,
+				col:         col,
+				height:      height,
+				visible:     false,
+				scenicScore: 0,
 			}
 			row = append(row, tree)
 		}
@@ -133,10 +135,78 @@ func CountVisibleFacingLeft(trees []Tree) (count int) {
 	return count
 }
 
+func CalculateScenicScores(trees [][]Tree) [][]Tree {
+	for row := 0; row < len(trees); row++ {
+		for col := 0; col < len(trees[row]); col++ {
+			tree := trees[row][col]
+
+			rightScore := 0
+			i := 1
+			if col < len(trees[row])-1 {
+				rightScore++
+				for col+i < len(trees)-1 && tree.height > trees[row][col+i].height {
+					i++
+					rightScore++
+				}
+			}
+
+			leftScore := 0
+			i = 1
+			if col > 0 {
+				leftScore++
+				for col-i > 0 && tree.height > trees[row][col-i].height {
+					i++
+					leftScore++
+				}
+			}
+
+			downScore := 0
+			i = 1
+			if row < len(trees)-1 {
+				downScore++
+				for row+i < len(trees)-1 && tree.height > trees[row+i][col].height {
+					i++
+					downScore++
+				}
+			}
+
+			upScore := 0
+			i = 1
+			if row > 0 {
+				upScore++
+				for row-i > 0 && tree.height > trees[row-i][col].height {
+					i++
+					upScore++
+				}
+			}
+
+			trees[row][col].scenicScore = rightScore * leftScore * downScore * upScore
+		}
+	}
+
+	return trees
+}
+
+func FindMaxScenicScore(trees [][]Tree) int {
+	max := 0
+	for _, row := range trees {
+		for _, tree := range row {
+			if tree.scenicScore > max {
+				max = tree.scenicScore
+			}
+		}
+	}
+	return max
+}
+
 func main() {
 	lines := ReadLines()
 	forest := ReadForestMatrix(lines)
 
 	// Part 1
 	fmt.Println(CountVisible(forest))
+
+	// Part 2
+	forest = CalculateScenicScores(forest)
+	fmt.Println(FindMaxScenicScore(forest))
 }

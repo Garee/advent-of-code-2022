@@ -57,10 +57,10 @@ func InitSim(startY int, n int) []RopePart {
 		knot := RopePart{
 			id:      fmt.Sprint(i),
 			visited: make([]Position, 0),
-			x:       0,
+			x:       startY,
 			y:       startY,
 		}
-		knot.visited = append(knot.visited, Position{x: 0, y: startY})
+		knot.visited = append(knot.visited, Position{x: startY, y: startY})
 		knots = append(knots, knot)
 	}
 	return knots
@@ -68,7 +68,7 @@ func InitSim(startY int, n int) []RopePart {
 
 func FindDimension(moves []Move) (max int) {
 	for _, move := range moves {
-		if move.direction == "U" || move.direction == "D" && move.amount > max {
+		if move.amount > max {
 			max = move.amount
 		}
 	}
@@ -76,7 +76,6 @@ func FindDimension(moves []Move) (max int) {
 }
 
 func CatchupTail(head RopePart, tail RopePart) RopePart {
-
 	for head.y-tail.y > 1 {
 		if head.x-tail.x > 0 {
 			tail.x += 1
@@ -179,34 +178,119 @@ func PerformMoves(moves []Move, head RopePart, tail RopePart) (RopePart, RopePar
 	return head, tail
 }
 
-func PerformMovesMany(knots []RopePart, moves []Move) []RopePart {
-	for _, move := range moves {
-		a, b := PerformMove(move, knots[0], knots[1])
-		knots[0] = a
-		knots[1] = b
-		for i := 2; i < len(knots); i++ {
-			knots[i] = CatchupTail(knots[i-1], knots[i])
+func PerformMoveMany(move Move, knots []RopePart, dim int) []RopePart {
+	switch move.direction {
+	case "R":
+		for move.amount > 0 {
+			knots[0].x += 1
+			knots[0] = MarkVisited(knots[0])
+			for i := 1; i < len(knots); i++ {
+				knots[i] = CatchupTail(knots[i-1], knots[i])
+			}
+			move.amount--
 		}
+		break
+	case "L":
+		for move.amount > 0 {
+			knots[0].x -= 1
+			knots[0] = MarkVisited(knots[0])
+			for i := 1; i < len(knots); i++ {
+				knots[i] = CatchupTail(knots[i-1], knots[i])
+			}
+			move.amount--
+		}
+		break
+	case "U":
+		for move.amount > 0 {
+			knots[0].y -= 1
+			knots[0] = MarkVisited(knots[0])
+			for i := 1; i < len(knots); i++ {
+				knots[i] = CatchupTail(knots[i-1], knots[i])
+			}
+			move.amount--
+		}
+		break
+	case "D":
+		for move.amount > 0 {
+			knots[0].y += 1
+			knots[0] = MarkVisited(knots[0])
+			for i := 1; i < len(knots); i++ {
+				knots[i] = CatchupTail(knots[i-1], knots[i])
+			}
+			move.amount--
+		}
+		break
+	default:
+		break
 	}
 	return knots
 }
 
+func PerformMovesMany(knots []RopePart, moves []Move, dim int) []RopePart {
+	for _, move := range moves {
+		knots = PerformMoveMany(move, knots, dim)
+	}
+	return knots
+}
+
+func PrintVisited(tail RopePart, dim int) {
+	for i := 0; i < dim*2; i++ {
+		for j := 0; j < dim*2; j++ {
+			found := false
+			for _, pos := range tail.visited {
+				if pos.x == j && pos.y == i {
+					fmt.Print("#")
+					found = true
+				}
+			}
+			if !found {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+}
+
+func PrintState(knots []RopePart, dim int) {
+	for i := 0; i < dim*2; i++ {
+		for j := 0; j < dim*2; j++ {
+
+			found := false
+			for k, knot := range knots {
+				if knot.x == j && knot.y == i {
+					found = true
+					fmt.Print(k)
+					break
+				}
+			}
+			if !found {
+				if i == dim && j == dim {
+					fmt.Print("s")
+				} else {
+					fmt.Print(".")
+				}
+			}
+		}
+		fmt.Println()
+	}
+}
+
 func main() {
 	lines := ReadLines()
+
+	// Part 1
 	moves := ParseMoves(lines)
 	dim := FindDimension(moves)
 	knots := InitSim(dim-1, 2)
 	head, tail := knots[0], knots[1]
-
-	// Part 1
 	head, tail = PerformMoves(moves, head, tail)
 	fmt.Println(len(tail.visited))
 
 	// Part 2
-	knots = InitSim(dim-1, 10)
 	moves = ParseMoves(lines)
-	knots = PerformMovesMany(knots, moves)
+	dim = FindDimension(moves)
+	knots = InitSim(dim-1, 10)
+	knots = PerformMovesMany(knots, moves, dim-1)
 	tail = knots[len(knots)-1]
-	fmt.Println(tail.visited)
 	fmt.Println(len(tail.visited))
 }
