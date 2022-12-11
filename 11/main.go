@@ -88,12 +88,29 @@ func ParseMonkeys(lines []string) []Monkey {
 	return monkeys
 }
 
-func SimulateMonkeyBusiness(monkeys []Monkey, rounds int) []Monkey {
+func Prod(nums []int) int {
+	n := 1
+	for _, num := range nums {
+		n *= num
+	}
+	return n
+}
+
+func ComputeProd(monkeys []Monkey) int {
+	divs := make([]int, 0)
+	for _, monkey := range monkeys {
+		divs = append(divs, monkey.test.divisibleBy)
+	}
+	return Prod(divs)
+}
+
+func SimulateMonkeyBusiness(monkeys []Monkey, rounds int, reduceWorry bool) []Monkey {
+	p := ComputeProd(monkeys)
 	for i := 0; i < rounds; i++ {
-		for m, monkey := range monkeys {
-			for _, item := range monkey.items {
-				op := monkey.operation
-				test := monkey.test
+		for m := 0; m < len(monkeys); m++ {
+			for _, item := range monkeys[m].items {
+				op := monkeys[m].operation
+				test := monkeys[m].test
 
 				rhs, err := strconv.Atoi(op.rhs)
 				if err != nil {
@@ -106,18 +123,23 @@ func SimulateMonkeyBusiness(monkeys []Monkey, rounds int) []Monkey {
 				} else if op.kind == "+" {
 					worry += rhs
 				}
-				worry /= 3
+
+				if reduceWorry {
+					worry /= 3
+				} else {
+					worry %= p
+				}
 
 				if worry%test.divisibleBy == 0 {
 					monkeys[test.monkeyTrue].items = append(monkeys[test.monkeyTrue].items, worry)
 				} else {
 					monkeys[test.monkeyFalse].items = append(monkeys[test.monkeyFalse].items, worry)
 				}
-
-				monkeys[m].inspected++
 			}
 
+			monkeys[m].inspected += len(monkeys[m].items)
 			monkeys[m].items = make([]int, 0)
+
 		}
 	}
 	return monkeys
@@ -126,12 +148,20 @@ func SimulateMonkeyBusiness(monkeys []Monkey, rounds int) []Monkey {
 func main() {
 	lines := ReadLines()
 	monkeys := ParseMonkeys(lines)
-	monkeys = SimulateMonkeyBusiness(monkeys, 20)
+	monkeys = SimulateMonkeyBusiness(monkeys, 20, true)
 
 	sort.Slice(monkeys, func(i, j int) bool {
 		return monkeys[i].inspected > monkeys[j].inspected
 	})
 
 	// Part 1
+	fmt.Println(monkeys[0].inspected * monkeys[1].inspected)
+
+	// Part 2
+	monkeys = ParseMonkeys(lines)
+	monkeys = SimulateMonkeyBusiness(monkeys, 10000, false)
+	sort.Slice(monkeys, func(i, j int) bool {
+		return monkeys[i].inspected > monkeys[j].inspected
+	})
 	fmt.Println(monkeys[0].inspected * monkeys[1].inspected)
 }
