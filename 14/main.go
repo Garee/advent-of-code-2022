@@ -15,8 +15,6 @@ type Pos struct {
 
 type Path []Pos
 
-const xOffset = 490
-
 func ReadLines() []string {
 	lines := make([]string, 0)
 
@@ -45,7 +43,7 @@ func ParsePaths(lines []string) []Path {
 	return paths
 }
 
-func CreateCave(paths []Path, width int, height int) ([]string, int) {
+func CreateCave(paths []Path, width int, height int, xOffset int) ([]string, int) {
 	cave := make([]string, 0, height)
 
 	for i := 0; i < height; i++ {
@@ -102,52 +100,64 @@ func DrawCave(cave []string) {
 	}
 }
 
-func DropSand(cave []string, floor int, from Pos) ([]string, int) {
+func DropSand(cave []string, floor int, from Pos, xOffset int, solidFloor bool) ([]string, int) {
 	sand := from
 	count := 0
 
 	cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "O" + cave[sand.y][sand.x-xOffset+1:]
 
-	for i := 0; i < 30; i++ {
-		DrawCave(cave)
-
-		if sand.y > floor {
+	for {
+		if sand.y > floor && !solidFloor {
 			return cave, count
 		}
 
-		if cave[sand.y+1][sand.x-xOffset] == '#' || cave[sand.y+1][sand.x-xOffset] == 'O' {
-			if sand.x-xOffset-1 < 0 {
-				return cave, count
-			} else if cave[sand.y+1][sand.x-xOffset-1] == '#' || cave[sand.y+1][sand.x-xOffset-1] == 'O' {
-				if cave[sand.y+1][sand.x-xOffset+1] == '#' || cave[sand.y+1][sand.x-xOffset+1] == 'O' {
+		x := sand.x - xOffset
+		xl := x - 1
+		xr := x + 1
+		y := sand.y + 1
+
+		hitFloor := solidFloor && y == floor+2
+
+		// Check down.
+		if cave[y][x] == '#' || cave[y][x] == 'O' || hitFloor {
+			// Down is blocked.
+
+			// Check left.
+			if xl < 0 || cave[y][xl] == '#' || cave[y][xl] == 'O' || hitFloor {
+				// Left is blocked.
+
+				// Check right.
+				if cave[y][xr] == '#' || cave[y][xr] == 'O' || hitFloor {
+					// Right is blocked.
+					if sand.x == from.x && sand.y == from.y {
+						return cave, count + 1
+					}
+
 					sand = from
 					count++
 				} else {
-					cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "." + cave[sand.y][sand.x-xOffset+1:]
+					// Right is not blocked.
+					sand.y = y
+					sand.x += 1
 
-					sand.y++
-					sand.x = sand.x - 1
-
-					cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "O" + cave[sand.y][sand.x-xOffset+1:]
+					cave[y-1] = cave[y-1][:x] + "." + cave[y-1][x+1:]
+					cave[y] = cave[y][:xr] + "O" + cave[y][xr+1:]
 				}
 			} else {
-				cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "." + cave[sand.y][sand.x-xOffset+1:]
+				// Left is not blocked
+				sand.y = y
+				sand.x -= 1
 
-				sand.y++
-				sand.x = sand.x - 1
-
-				cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "O" + cave[sand.y][sand.x-xOffset+1:]
+				cave[y-1] = cave[y-1][:x] + "." + cave[y-1][x+1:]
+				cave[y] = cave[y][:xl] + "O" + cave[y][xl+1:]
 			}
 		} else {
-			cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "." + cave[sand.y][sand.x-xOffset+1:]
-
-			sand.y++
-
-			cave[sand.y] = cave[sand.y][:sand.x-xOffset] + "O" + cave[sand.y][sand.x-xOffset+1:]
+			// Down is not blocked.
+			sand.y = y
+			cave[y-1] = cave[sand.y-1][:x] + "." + cave[y-1][x+1:]
+			cave[y] = cave[y][:x] + "O" + cave[y][x+1:]
 		}
 	}
-
-	return cave, count
 }
 
 func main() {
@@ -155,8 +165,14 @@ func main() {
 	paths := ParsePaths(lines)
 
 	// Part 1
-	width, height := 20, 15
-	cave, floor := CreateCave(paths, width, height)
-	_, count := DropSand(cave, floor, Pos{500, 0})
+	width, height, xOffset := 1000, 1000, 0
+	cave, floor := CreateCave(paths, width, height, xOffset)
+	_, count := DropSand(cave, floor, Pos{500, 0}, xOffset, false)
+	fmt.Println(count)
+
+	// Part 2
+	width, height, xOffset = 1000, 1000, 0
+	cave, floor = CreateCave(paths, width, height, xOffset)
+	cave, count = DropSand(cave, floor, Pos{500, 0}, xOffset, true)
 	fmt.Println(count)
 }
