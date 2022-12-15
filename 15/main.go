@@ -133,39 +133,115 @@ func Dist(a Sensor, b Beacon) int {
 	return ManDist(a.x, b.x, a.y, b.y)
 }
 
-func FindBeacon(sensors []Sensor, xlim int, ylim int) (int, int) {
-	for r := 0; r <= ylim; r++ {
-		if r%10 == 0 {
-			fmt.Println(r)
-		}
-		for c := 0; c <= xlim; c++ {
+func FindBeacon(sensors []Sensor, beacons []Beacon, xlim int, ylim int) (int, int) {
+	for _, sensor := range sensors {
+		minX := sensor.x - sensor.dist - 1
+		maxX := sensor.x + sensor.dist + 1
+		minY := sensor.y - sensor.dist - 1
+		maxY := sensor.y + sensor.dist + 1
 
-			blocked := false
+		// Diagonal bottom to middle left
+		for r, c := minY, sensor.x; r <= sensor.y && c >= minX; r, c = r+1, c-1 {
+			if r < 0 || r > ylim || c < 0 || c > xlim {
+				break
+			}
+
 			inRange := false
 
 			for _, sensor := range sensors {
 				if sensor.x == c && sensor.y == r {
-					blocked = true
-					break
+					inRange = true
+					continue
 				}
 
 				dist := ManDist(c, sensor.x, r, sensor.y)
 				if dist <= sensor.dist {
 					inRange = true
-					break
 				}
 			}
 
-			if blocked || inRange {
-				continue
+			if !inRange {
+				return c, r
+			}
+		}
+
+		// Diagonal middle left to bottom
+		for r, c := sensor.y, minX; r <= maxY && c <= sensor.x; r, c = r+1, c+1 {
+			if r < 0 || r > ylim || c < 0 || c > xlim {
+				break
 			}
 
-			if !inRange && !blocked {
+			inRange := false
+
+			for _, sensor := range sensors {
+				if sensor.x == c && sensor.y == r {
+					inRange = true
+					continue
+				}
+
+				dist := ManDist(c, sensor.x, r, sensor.y)
+				if dist <= sensor.dist {
+					inRange = true
+				}
+			}
+
+			if !inRange {
+				return c, r
+			}
+		}
+
+		// Diagonal bottom to right middle
+		for r, c := maxY, sensor.x; r <= sensor.y && c <= maxX; r, c = r-1, c+1 {
+			if r < 0 || r > ylim || c < 0 || c > xlim {
+				break
+			}
+
+			inRange := false
+
+			for _, sensor := range sensors {
+				if sensor.x == c && sensor.y == r {
+					inRange = true
+					continue
+				}
+
+				dist := ManDist(c, sensor.x, r, sensor.y)
+				if dist <= sensor.dist {
+					inRange = true
+				}
+			}
+
+			if !inRange {
+				return c, r
+			}
+		}
+
+		// Diagonal right middle to top
+		for r, c := sensor.y, maxX; r >= minY && c >= sensor.x; r, c = r-1, c-1 {
+			if r < 0 || r > ylim || c < 0 || c > xlim {
+				break
+			}
+
+			inRange := false
+
+			for _, sensor := range sensors {
+				if sensor.x == c && sensor.y == r {
+					inRange = true
+					continue
+				}
+
+				dist := ManDist(c, sensor.x, r, sensor.y)
+				if dist <= sensor.dist {
+					inRange = true
+				}
+			}
+
+			if !inRange {
 				return c, r
 			}
 		}
 	}
-	return 0, 0
+
+	return -1, -1
 }
 
 func TuningFreq(x int, y int) int {
@@ -179,10 +255,8 @@ func main() {
 
 	// Part 1
 	fmt.Println(Draw(sensors, beacons, minX, maxX, 2000000))
-	//fmt.Println(Draw(sensors, beacons, minX, maxX, 10))
 
 	// Part 2
-	x, y := FindBeacon(sensors, 4000000, 4000000)
-	//x, y := FindBeacon(sensors, 20, 20)
+	x, y := FindBeacon(sensors, beacons, 4000000, 4000000)
 	fmt.Println(TuningFreq(x, y))
 }
