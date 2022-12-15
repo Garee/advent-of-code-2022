@@ -133,9 +133,56 @@ func Dist(a Sensor, b Beacon) int {
 	return ManDist(a.x, b.x, a.y, b.y)
 }
 
+func FindBeacon(sensors []Sensor, xlim int, ylim int) (int, int) {
+	for r := 0; r <= ylim; r++ {
+		if r%10 == 0 {
+			fmt.Println(r)
+		}
+		for c := 0; c <= xlim; c++ {
+
+			blocked := false
+			inRange := false
+
+			for _, sensor := range sensors {
+				if sensor.x == c && sensor.y == r {
+					blocked = true
+					break
+				}
+
+				dist := ManDist(c, sensor.x, r, sensor.y)
+				if dist <= sensor.dist {
+					inRange = true
+					break
+				}
+			}
+
+			if blocked || inRange {
+				continue
+			}
+
+			if !inRange && !blocked {
+				return c, r
+			}
+		}
+	}
+	return 0, 0
+}
+
+func TuningFreq(x int, y int) int {
+	return x*4000000 + y
+}
+
 func main() {
 	lines := ReadLines()
 	sensors, beacons, minX, _, maxX, _ := ParseSensorsAndBeacons(lines)
 	sensors = CalcDistances(sensors)
+
+	// Part 1
 	fmt.Println(Draw(sensors, beacons, minX, maxX, 2000000))
+	//fmt.Println(Draw(sensors, beacons, minX, maxX, 10))
+
+	// Part 2
+	x, y := FindBeacon(sensors, 4000000, 4000000)
+	//x, y := FindBeacon(sensors, 20, 20)
+	fmt.Println(TuningFreq(x, y))
 }
