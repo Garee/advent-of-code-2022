@@ -79,19 +79,21 @@ func CopyMap(m map[string]bool) map[string]bool {
 	return copy
 }
 
-func SimulatePressureRelease(curr *Valve, opened map[string]bool, min int, cache map[string]int) (pressure int) {
+func SimulatePressureRelease(curr *Valve, opened map[string]bool, min int, cache map[string]int) (int, map[string]int) {
+	pressure := 0
+
 	key := curr.name + fmt.Sprint(opened) + fmt.Sprint(min)
 	val, hit := cache[key]
 	if hit {
-		return val
+		return val, cache
 	}
 
 	if min <= 0 {
-		return 0
+		return 0, cache
 	}
 
 	for _, conn := range curr.connections {
-		p := SimulatePressureRelease(conn, opened, min-1, cache)
+		p, _ := SimulatePressureRelease(conn, opened, min-1, cache)
 		key := conn.name + fmt.Sprint(opened) + fmt.Sprint(min-1)
 		cache[key] = p
 		if p > pressure {
@@ -107,8 +109,50 @@ func SimulatePressureRelease(curr *Valve, opened map[string]bool, min int, cache
 		totalRate := min * curr.rate
 
 		for _, conn := range curr.connections {
-			p := SimulatePressureRelease(conn, openedCopy, min-1, cache)
+			p, _ := SimulatePressureRelease(conn, openedCopy, min-1, cache)
 			key := conn.name + fmt.Sprint(opened) + fmt.Sprint(min-1)
+			cache[key] = p
+
+			if totalRate+p > pressure {
+				pressure = totalRate + p
+			}
+		}
+	}
+
+	return pressure, cache
+}
+
+func SimulatePressureReleaseWithElephant(curr *Valve, opened map[string]bool, min int, cache map[string]int, origCache map[string]int, aa *Valve) (pressure int) {
+	key := curr.name + fmt.Sprint(opened) + fmt.Sprint(min)
+	val, hit := cache[key]
+	if hit {
+		return val
+	}
+
+	if min <= 0 {
+		p, _ := SimulatePressureRelease(aa, opened, 26, origCache)
+		return p
+	}
+
+	for _, conn := range curr.connections {
+		p := SimulatePressureReleaseWithElephant(conn, opened, min-1, cache, origCache, aa)
+		key := conn.name + fmt.Sprint(opened) + fmt.Sprint(min-1)
+		cache[key] = p
+		if p > pressure {
+			pressure = p
+		}
+	}
+
+	_, isOpen := opened[curr.name]
+	if !isOpen && curr.rate > 0 && min > 0 {
+		openedCopy := CopyMap(opened)
+		openedCopy[curr.name] = true
+		min--
+		totalRate := min * curr.rate
+
+		for _, conn := range curr.connections {
+			p := SimulatePressureReleaseWithElephant(conn, openedCopy, min-1, cache, origCache, aa)
+			key := conn.name + fmt.Sprint(openedCopy) + fmt.Sprint(min-1)
 			cache[key] = p
 
 			if totalRate+p > pressure {
@@ -126,6 +170,10 @@ func main() {
 
 	// Part 1
 	_, start := ParseValvesAndTunnels(lines)
-	pressure := SimulatePressureRelease(start, make(map[string]bool, 0), 30, make(map[string]int))
+	pressure, _ := SimulatePressureRelease(start, make(map[string]bool), 30, make(map[string]int))
+	fmt.Println(pressure)
+
+	// Part 2 - Terribly slow and bad.
+	pressure = SimulatePressureReleaseWithElephant(start, make(map[string]bool), 26, make(map[string]int), make(map[string]int), start)
 	fmt.Println(pressure)
 }
