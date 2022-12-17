@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -17,6 +18,7 @@ type Offset struct {
 }
 
 type Rock struct {
+	kind   string
 	coords []Coord
 }
 type Tower struct {
@@ -77,6 +79,25 @@ func ReadLines() []string {
 	return lines
 }
 
+func Normalize(rocks []Rock) []Rock {
+	min := math.MaxInt
+	for _, rock := range rocks {
+		for _, coord := range rock.coords {
+			if coord.y < min {
+				min = coord.y
+			}
+		}
+	}
+
+	for _, rock := range rocks {
+		for _, coord := range rock.coords {
+			coord.y -= min
+		}
+	}
+
+	return rocks
+}
+
 func SimulateFallingRocks(rocks int, jets string) Tower {
 	shapes := make([]Rock, 0)
 
@@ -88,6 +109,7 @@ func SimulateFallingRocks(rocks int, jets string) Tower {
 	jet := true
 	rockIdx, jetIdx := 0, 0
 	x, y := 0, BottomMargin
+	prevRocks, prevHeight := 0, 0
 
 	// While there are rocks remaining
 	for rocks > 0 {
@@ -103,7 +125,7 @@ func SimulateFallingRocks(rocks int, jets string) Tower {
 			})
 		}
 
-		rock := &Rock{coords}
+		rock := &Rock{rockId, coords}
 		tower.rocks = append(tower.rocks, *rock)
 
 		// While it is falling
@@ -230,6 +252,17 @@ func SimulateFallingRocks(rocks int, jets string) Tower {
 		y = maxY + BottomMargin + 1
 
 		rocks--
+
+		//fmt.Println(rockIdx, jetIdx)
+		//if rockIdx == 2 && jetIdx == 10 {
+		if rockIdx == 2 && jetIdx == 23 {
+			nRocks := len(tower.rocks)
+			towerHeight := CalcTowerHeight(tower)
+
+			fmt.Println("#", nRocks, "H:", towerHeight, "Diff #:", nRocks-prevRocks, "Diff H:", towerHeight-prevHeight, "(", rockIdx, jetIdx, ")")
+			prevRocks = nRocks
+			prevHeight = towerHeight
+		}
 	}
 
 	return tower
@@ -282,4 +315,19 @@ func main() {
 	tower := SimulateFallingRocks(2022, jets)
 	height := CalcTowerHeight(tower)
 	fmt.Println(height)
+
+	// Cycle every 1690 rocks and 2548 height
+	//tower = SimulateFallingRocks(1000000000000, jets)
+	// height = 5403
+	// nRocks := 3580
+	// nRocksToGo := 1000000000000 - nRocks
+	// additionalHeight := (nRocksToGo / 1690) * 2548
+
+	height = 3057
+	nRocks := 2014
+	nRocksToGo := 1000000000000 - nRocks
+	additionalHeight := int(math.Floor(float64(nRocksToGo)/float64(35))) * 53
+	fmt.Println(height + additionalHeight)
+	fmt.Println((1000000000000-62)/(97-62)*(153-100) + 100)
+	fmt.Println((1000000000000-200)/(1890-200)*(2855-307) + 307)
 }
