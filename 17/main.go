@@ -4,48 +4,54 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
+
+type Pos struct {
+	x int
+	y int
+}
 
 var Pattern = []string{"-", "+", "l", "i", "o"}
 
 var Shapes = map[string][]string{
 	"-": {
+		".......",
+		".......",
+		".......",
 		"..####.",
-		".......",
-		".......",
-		".......",
 	},
 	"+": {
+		".......",
+		".......",
+		".......",
 		"...#...",
 		"..###..",
 		"...#...",
-		".......",
-		".......",
-		".......",
 	},
 	"l": {
+		".......",
+		".......",
+		".......",
 		"....#..",
 		"....#..",
 		"..###..",
-		".......",
-		".......",
-		".......",
 	},
 	"i": {
-		"..#....",
-		"..#....",
-		"..#....",
-		"..#....",
 		".......",
 		".......",
 		".......",
+		"..#....",
+		"..#....",
+		"..#....",
+		"..#....",
 	},
 	"o": {
+		".......",
+		".......",
+		".......",
 		"..##...",
 		"..##...",
-		".......",
-		".......",
-		".......",
 	},
 }
 
@@ -65,42 +71,56 @@ func ReadLines() []string {
 	return lines
 }
 
-func SimulateFallingRocks(rocks int, jets string) int {
+func SimulateFallingRocks(rocks int, jets string) ([]string, int) {
 	tower := make([]string, 0)
 
 	rockFall := true
+	jet := true
 	rockIdx, jetIdx := 0, 0
 
 	for rocks > 0 {
-		if rockFall {
-			rock := Shapes[Pattern[rockIdx]]
-			tower = append(tower, rock...)
-			rocks--
+		rock := Shapes[Pattern[rockIdx]]
+		tower = append(tower, rock...)
+		rocks--
 
-			rockIdx++
-			if rockIdx >= len(Pattern) {
-				rockIdx = 0
+		rockIdx++
+		if rockIdx >= len(Pattern) {
+			rockIdx = 0
+		}
+
+		for rockFall {
+			if jet {
+				// TODO:
+
+				jetIdx++
+				if jetIdx >= len(jets) {
+					jetIdx = 0
+				}
+				jet = false
+			} else {
+				height := 0
+				top := rock[0]
+				for i, line := range rock {
+					if strings.Contains(line, "#") {
+						height = len(rock) - i + 1
+						top = line
+					}
+				}
 			}
-			rockFall = false
-		} else {
-			jetIdx++
-			if jetIdx >= len(jets) {
-				jetIdx = 0
-			}
-			rockFall = true
 		}
 	}
 
-	for r := 0; r < len(tower); r++ {
-		fmt.Println(tower[r])
-	}
-
-	return len(tower)
+	return tower, len(tower)
 }
 
 func main() {
 	lines := ReadLines()
 	jets := lines[0]
-	height := SimulateFallingRocks(2022, jets)
+	tower, height := SimulateFallingRocks(2, jets)
+
+	for r := 0; r < len(tower); r++ {
+		fmt.Println(tower[r])
+	}
+
 	fmt.Println(height)
 }
