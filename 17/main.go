@@ -98,7 +98,7 @@ func Normalize(rocks []Rock) []Rock {
 	return rocks
 }
 
-func SimulateFallingRocks(rocks int, jets string) Tower {
+func SimulateFallingRocks(rocks int, jets string, debug bool, rockIdx int, jetIdx int) Tower {
 	shapes := make([]Rock, 0)
 
 	tower := Tower{
@@ -107,7 +107,6 @@ func SimulateFallingRocks(rocks int, jets string) Tower {
 	}
 
 	jet := true
-	rockIdx, jetIdx := 0, 0
 	x, y := 0, BottomMargin
 	prevRocks, prevHeight := 0, 0
 
@@ -253,13 +252,11 @@ func SimulateFallingRocks(rocks int, jets string) Tower {
 
 		rocks--
 
-		//fmt.Println(rockIdx, jetIdx)
-		//if rockIdx == 2 && jetIdx == 10 {
-		if rockIdx == 2 && jetIdx == 23 {
+		if debug && len(tower.rocks) >= 1935 && len(tower.rocks) <= 1935+315 {
 			nRocks := len(tower.rocks)
 			towerHeight := CalcTowerHeight(tower)
 
-			fmt.Println("#", nRocks, "H:", towerHeight, "Diff #:", nRocks-prevRocks, "Diff H:", towerHeight-prevHeight, "(", rockIdx, jetIdx, ")")
+			fmt.Println("#", nRocks, "H:", towerHeight, "Diff #:", nRocks-prevRocks, "Diff H:", towerHeight-prevHeight, "(", rockIdx-1, jetIdx-1, ")")
 			prevRocks = nRocks
 			prevHeight = towerHeight
 		}
@@ -269,7 +266,8 @@ func SimulateFallingRocks(rocks int, jets string) Tower {
 }
 
 func PrintTower(tower Tower) {
-	for r := CalcTowerHeight(tower); r >= 0; r-- {
+	height := CalcTowerHeight(tower)
+	for r := height; r >= height-50; r-- {
 		for c := 0; c < tower.width; c++ {
 			containsShape := false
 
@@ -312,22 +310,31 @@ func main() {
 	jets := lines[0]
 
 	// Part 1
-	tower := SimulateFallingRocks(2022, jets)
+	tower := SimulateFallingRocks(2022, jets, false, 0, 0)
 	height := CalcTowerHeight(tower)
 	fmt.Println(height)
 
-	// Cycle every 1690 rocks and 2548 height
-	//tower = SimulateFallingRocks(1000000000000, jets)
-	// height = 5403
-	// nRocks := 3580
-	// nRocksToGo := 1000000000000 - nRocks
-	// additionalHeight := (nRocksToGo / 1690) * 2548
-
-	height = 3057
-	nRocks := 2014
-	nRocksToGo := 1000000000000 - nRocks
-	additionalHeight := int(math.Floor(float64(nRocksToGo)/float64(35))) * 53
-	fmt.Println(height + additionalHeight)
-	fmt.Println((1000000000000-62)/(97-62)*(153-100) + 100)
-	fmt.Println((1000000000000-200)/(1890-200)*(2855-307) + 307)
+	// Part 2
+	// tower = SimulateFallingRocks(1000000000000, jets, true, 0, 0)
+	target := 1000000000000
+	// This is for the example.
+	// height = 97
+	// nRocks := 61
+	// cycleLen := 35
+	// cycleHeight := 53
+	// nRocksToSkip := target - nRocks
+	// nCyclesToSkip := nRocksToSkip / cycleLen
+	// skippedHeight := nCyclesToSkip * cycleHeight
+	// nRocksToGo := nRocksToSkip % cycleLen
+	// heightToGo := 34 // First nRocksToGo of cycle
+	height = 2919
+	nRocks := 1935
+	cycleLen := 1690
+	cycleHeight := 2548
+	nRocksToSkip := target - nRocks
+	nCyclesToSkip := nRocksToSkip / cycleLen
+	skippedHeight := nCyclesToSkip * cycleHeight
+	//nRocksToGo := nRocksToSkip % cycleLen // 315
+	heightToGo := 471 // First nRocksToGo of cycle
+	fmt.Println(height + skippedHeight + heightToGo)
 }
