@@ -77,6 +77,44 @@ func ComputeYellResult(monkey Monkey, monkeys map[string]Monkey) int {
 	}
 }
 
+func ComputeEqualitySide(monkey Monkey, monkeys map[string]Monkey, n int) (int, *int) {
+	if monkey.name == "humn" {
+		return n, nil
+	}
+
+	yell := monkey.yell
+	if yell.result != nil {
+		return *yell.result, nil
+	}
+
+	if monkey.name == "root" {
+		*yell.op = "-"
+	}
+
+	lhs, _ := ComputeEqualitySide(monkeys[*yell.lhs], monkeys, n)
+	rhs, _ := ComputeEqualitySide(monkeys[*yell.rhs], monkeys, n)
+
+	switch *yell.op {
+	case "+":
+		return lhs + rhs, nil
+	case "-":
+		return lhs - rhs, &n
+	case "*":
+		return lhs * rhs, nil
+	case "/":
+		return lhs / rhs, nil
+	default:
+		return 0, nil
+	}
+}
+
+func Abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 func main() {
 	lines := ReadLines()
 	monkeys := ParseMonkeys(lines)
@@ -84,4 +122,17 @@ func main() {
 	// Part 1
 	result := ComputeYellResult(monkeys["root"], monkeys)
 	fmt.Println(result)
+
+	// Part 2
+	n, inc := 3916936870654, 1
+	a, _ := ComputeEqualitySide(monkeys["root"], monkeys, n)
+	results := []int{a}
+	for results[len(results)-1] != 0 {
+		n += inc
+		result, _ = ComputeEqualitySide(monkeys["root"], monkeys, n)
+		results = append(results, result)
+		if result == 0 {
+			fmt.Println(n)
+		}
+	}
 }
