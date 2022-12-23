@@ -119,8 +119,9 @@ func HasNeighbour(elf *Elf, currLocs map[Coord]*Elf) bool {
 	return HasNorthNeighbour(elf, currLocs) || HasSouthNeighbour(elf, currLocs) || HasWestNeighbour(elf, currLocs) || HasEastNeighbour(elf, currLocs)
 }
 
-func Simulate(elves []*Elf, dirs []string, rounds int) []*Elf {
-	for rounds > 0 {
+func Simulate(elves []*Elf, dirs []string, maxRounds int, untilStill bool) ([]*Elf, int) {
+	rounds := 1
+	for untilStill || rounds <= maxRounds {
 		currLocs := GetElfLocations(elves)
 		nextLocs := make(map[*Elf]Coord, 0)
 
@@ -159,6 +160,7 @@ func Simulate(elves []*Elf, dirs []string, rounds int) []*Elf {
 			}
 		}
 
+		elfMoved := false
 		for elf, coord := range nextLocs {
 			canMove := true
 
@@ -176,14 +178,19 @@ func Simulate(elves []*Elf, dirs []string, rounds int) []*Elf {
 			if canMove {
 				elf.x = coord.x
 				elf.y = coord.y
+				elfMoved = true
 			}
 		}
 
+		if !elfMoved {
+			return elves, rounds
+		}
+
 		dirs = NextDirs(dirs)
-		rounds--
+		rounds++
 	}
 
-	return elves
+	return elves, rounds
 }
 
 func GetBoundary(elves []*Elf) (int, int, int, int) {
@@ -251,7 +258,12 @@ func main() {
 	elves, _ := ParseElves(lines)
 	dirs := InitDirs()
 	rounds := 10
-	elves = Simulate(elves, dirs, rounds)
+	elves, _ = Simulate(elves, dirs, rounds, false)
 	count := CountEmpty(elves, false)
 	fmt.Println(count)
+
+	// Part 2
+	elves, _ = ParseElves(lines)
+	_, rounds = Simulate(elves, dirs, rounds, true)
+	fmt.Println(rounds)
 }
