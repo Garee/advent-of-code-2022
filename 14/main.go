@@ -173,6 +173,6 @@ func main() {
 	// Part 2
 	width, height, xOffset = 1000, 1000, 0
 	cave, floor = CreateCave(paths, width, height, xOffset)
-	cave, count = DropSand(cave, floor, Pos{500, 0}, xOffset, true)
+	_, count = DropSand(cave, floor, Pos{500, 0}, xOffset, true)
 	fmt.Println(count)
 }

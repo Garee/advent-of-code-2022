@@ -35,7 +35,6 @@ func ParseInstructions(lines []string) []Inst {
 		case "addx":
 			val, _ := strconv.Atoi(tokens[1])
 			instructions = append(instructions, Inst{name: name, val: val, cycle: 2})
-			break
 		case "noop":
 			instructions = append(instructions, Inst{name: name, val: 0, cycle: 1})
 		default:

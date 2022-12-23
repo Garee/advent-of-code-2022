@@ -139,7 +139,6 @@ func PerformMove(move Move, head RopePart, tail RopePart) (RopePart, RopePart) {
 			tail = CatchupTail(head, tail)
 			move.amount--
 		}
-		break
 	case "L":
 		for move.amount > 0 {
 			head.x -= 1
@@ -147,7 +146,6 @@ func PerformMove(move Move, head RopePart, tail RopePart) (RopePart, RopePart) {
 			tail = CatchupTail(head, tail)
 			move.amount--
 		}
-		break
 	case "U":
 		for move.amount > 0 {
 			head.y -= 1
@@ -155,7 +153,6 @@ func PerformMove(move Move, head RopePart, tail RopePart) (RopePart, RopePart) {
 			tail = CatchupTail(head, tail)
 			move.amount--
 		}
-		break
 	case "D":
 		for move.amount > 0 {
 			head.y += 1
@@ -163,7 +160,6 @@ func PerformMove(move Move, head RopePart, tail RopePart) (RopePart, RopePart) {
 			tail = CatchupTail(head, tail)
 			move.amount--
 		}
-		break
 	default:
 		break
 	}
@@ -189,7 +185,6 @@ func PerformMoveMany(move Move, knots []RopePart, dim int) []RopePart {
 			}
 			move.amount--
 		}
-		break
 	case "L":
 		for move.amount > 0 {
 			knots[0].x -= 1
@@ -199,7 +194,6 @@ func PerformMoveMany(move Move, knots []RopePart, dim int) []RopePart {
 			}
 			move.amount--
 		}
-		break
 	case "U":
 		for move.amount > 0 {
 			knots[0].y -= 1
@@ -209,7 +203,6 @@ func PerformMoveMany(move Move, knots []RopePart, dim int) []RopePart {
 			}
 			move.amount--
 		}
-		break
 	case "D":
 		for move.amount > 0 {
 			knots[0].y += 1
@@ -219,7 +212,6 @@ func PerformMoveMany(move Move, knots []RopePart, dim int) []RopePart {
 			}
 			move.amount--
 		}
-		break
 	default:
 		break
 	}
@@ -283,7 +275,7 @@ func main() {
 	dim := FindDimension(moves)
 	knots := InitSim(dim-1, 2)
 	head, tail := knots[0], knots[1]
-	head, tail = PerformMoves(moves, head, tail)
+	_, tail = PerformMoves(moves, head, tail)
 	fmt.Println(len(tail.visited))
 
 	// Part 2

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-
 	"github.com/gammazero/deque"
 )
 
