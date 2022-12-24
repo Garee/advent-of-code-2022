@@ -129,14 +129,11 @@ func PathContains(path []Coord, p Coord) bool {
 	return false
 }
 
-func ReachGoal(player Player, states map[int]ValleyState) int {
-	mins := 0
-	valley := states[mins]
-	path := []Coord{player.pos}
-
-	for !PathContains(path, valley.end) && len(path) > 0 {
+func ReachGoal(states map[int]ValleyState, mins int, start Coord, end Coord) int {
+	path := []Coord{start}
+	for !PathContains(path, end) && len(path) > 0 {
 		mins++
-		valley = states[mins]
+		valley := states[mins]
 
 		nextPath := make([]Coord, 0)
 		for _, pos := range path {
@@ -159,12 +156,28 @@ func ReachGoal(player Player, states map[int]ValleyState) int {
 					continue
 				}
 
-				if step.y == 0 && step.x != valley.start.x {
-					continue
+				if step.y == 0 && start.y == 0 {
+					if step.x != start.x {
+						continue
+					}
 				}
 
-				if step.y == valley.height-1 && step.x != valley.end.x {
-					continue
+				if step.y == 0 && end.y == 0 {
+					if step.x != end.x {
+						continue
+					}
+				}
+
+				if step.y == valley.height-1 && start.y == valley.height-1 {
+					if step.x != start.x {
+						continue
+					}
+				}
+
+				if step.y == valley.height-1 && end.y == valley.height-1 {
+					if step.x != end.x {
+						continue
+					}
 				}
 
 				if _, hit := ContainsBlizzard(step.x, step.y, valley.blizzards); hit {
@@ -187,6 +200,14 @@ func main() {
 	valley := ReadLines()
 	player, blizzards := SurveyValley(valley)
 	states := SimulateValleyStates(player, blizzards, valley, 1024)
-	mins := ReachGoal(player, states)
-	fmt.Println(mins)
+
+	// Part 1
+	minsToEnd := ReachGoal(states, 0, player.pos, player.target)
+
+	// Part 2
+	t1 := ReachGoal(states, minsToEnd, player.target, player.pos)
+	minsBackToStart := t1 - minsToEnd
+	t2 := ReachGoal(states, t1, player.pos, player.target)
+	minsBackToEnd := t2 - t1
+	fmt.Println(minsToEnd + minsBackToStart + minsBackToEnd)
 }
